@@ -1,0 +1,14 @@
+- name: Install single-node Elasticsearch
+  hosts: all
+  vars_prompt:
+    - name: elasticsearch_bootstrap_password
+      prompt: "Digite a senha do usuário elastic"
+      private: true
+
+    - name: elasticsearch_app_password
+      prompt: "Digite a senha do usuário da aplicação"
+      private: true
+  become: true
+
+  roles:
+    - elasticsearch

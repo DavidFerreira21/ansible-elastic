@@ -1,0 +1,29 @@
+- name: Configure elasticsearch.yml
+  template:
+    src: elasticsearch.yml.j2
+    dest: /etc/elasticsearch/elasticsearch.yml
+    owner: elasticsearch
+    group: elasticsearch
+    mode: "0640"
+  notify: restart elasticsearch
+
+- name: Enable and start Elasticsearch
+  systemd:
+    name: elasticsearch
+    enabled: true
+    state: started
+
+- name: Set elastic bootstrap password (only first run)
+  expect:
+    command: /usr/share/elasticsearch/bin/elasticsearch-reset-password -u elastic -i
+    responses:
+      'Please confirm that you would like to continue.*': 'y'
+      'Enter password for.*': "{{ elasticsearch_bootstrap_password }}"
+      'Re-enter password for.*': "{{ elasticsearch_bootstrap_password }}"
+  args:
+    creates: /etc/elasticsearch/.elastic_password_set
+
+- name: Mark elastic password as set
+  file:
+    path: /etc/elasticsearch/.elastic_password_set
+    state: touch

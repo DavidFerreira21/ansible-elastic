@@ -1,0 +1,31 @@
+# ======================== Elasticsearch Configuration =========================
+
+cluster.name: {{ elasticsearch_cluster_name }}
+
+node.name: {{ elasticsearch_node_name }}
+node.roles:
+  - master
+  - data
+  - ingest
+  - ml
+  - transform
+  - remote_cluster_client
+
+path.data: {{ elasticsearch_data_path }}
+path.logs: {{ elasticsearch_logs_path }}
+
+network.host: {{ elasticsearch_network_host }}
+http.port: {{ elasticsearch_http_port }}
+
+discovery.type: single-node
+
+# ======================== Security =========================
+xpack.security.enabled: {{ elasticsearch_enable_security | bool | lower }}
+
+{% if elasticsearch_enable_security %}
+xpack.security.http.ssl.enabled: false
+xpack.security.transport.ssl.enabled: false
+{% endif %}
+
+bootstrap.memory_lock: true
+action.destructive_requires_name: true

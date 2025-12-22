@@ -1,0 +1,15 @@
+elasticsearch_version: "8.12.0"
+
+elasticsearch_cluster_name: "asapflow-es"
+elasticsearch_node_name: "{{ inventory_hostname }}"
+
+elasticsearch_data_path: /var/lib/elasticsearch
+elasticsearch_logs_path: /var/log/elasticsearch
+
+elasticsearch_network_host: 0.0.0.0
+elasticsearch_http_port: 9200
+
+# Segurança
+elasticsearch_enable_security: true
+elasticsearch_app_user: asapflow_app
+# As senhas serão solicitadas via prompt no playbook.yml

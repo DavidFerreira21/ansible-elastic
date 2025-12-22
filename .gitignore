@@ -1,0 +1,4 @@
+# Local .gitignore file for Terraform projects
+terraform.tfstate
+.terraform/
+.terraform.lock.hcl

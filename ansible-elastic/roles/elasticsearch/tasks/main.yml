@@ -1,0 +1,7 @@
+
+- import_tasks: install.yml
+- import_tasks: configure.yml
+
+# Só cria usuários se segurança estiver habilitada
+- import_tasks: users.yml
+  when: elasticsearch_enable_security | bool

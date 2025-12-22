@@ -1,0 +1,30 @@
+- name: Install Java
+  dnf:
+    name: java-17-amazon-corretto
+    state: present
+
+- name: Add Elasticsearch repository
+  copy:
+    dest: /etc/yum.repos.d/elasticsearch.repo
+    content: |
+      [elasticsearch]
+      name=Elasticsearch repository
+      baseurl=https://artifacts.elastic.co/packages/8.x/yum
+      gpgcheck=1
+      gpgkey=https://artifacts.elastic.co/GPG-KEY-elasticsearch
+      enabled=1
+
+- name: Install Elasticsearch
+  dnf:
+    name: elasticsearch
+    state: present
+
+- name: Install expect
+  package:
+    name: expect
+    state: present
+
+- name: Install pexpect (required for expect module)
+  package:
+    name: python3-pexpect
+    state: present

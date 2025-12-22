@@ -1,0 +1,38 @@
+- name: Wait for Elasticsearch API
+  uri:
+    url: "http://localhost:9200"
+    method: GET
+    user: elastic
+    password: "{{ elasticsearch_bootstrap_password }}"
+    force_basic_auth: true
+    status_code: [200]
+  retries: 12
+  delay: 5
+  register: result
+  until: result.status == 200
+
+- name: Check if application user exists
+  uri:
+    url: "http://localhost:9200/_security/user/{{ elasticsearch_app_user }}"
+    method: GET
+    user: elastic
+    password: "{{ elasticsearch_bootstrap_password }}"
+    force_basic_auth: true
+    status_code: [200, 404]
+  register: app_user_check
+
+
+- name: Create application user as superuser
+  uri:
+    url: "http://localhost:9200/_security/user/{{ elasticsearch_app_user }}"
+    method: PUT
+    user: elastic
+    password: "{{ elasticsearch_bootstrap_password }}"
+    force_basic_auth: true
+    body_format: json
+    body:
+      password: "{{ elasticsearch_app_password }}"
+      roles:
+        - superuser
+    status_code: [200, 201]
+  when: app_user_check.status == 404
