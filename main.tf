@@ -1,7 +1,7 @@
 resource "aws_instance" "elasticsearch" {
   count = var.elasticsearch_node_count
 
-  ami                         = "ami-068c0051b15cdb816" # Amazon Linux 2 AMI (HVM), SSD Volume Type - us-east-1
+  ami                         = "ami-082b31c9b039389ec" #Amazon Linux 2 AMI (HVM), SSD Volume Type - us-east-1
   instance_type               = var.instance_type
   subnet_id                   = element(var.subnet_ids, count.index)
   vpc_security_group_ids      = [aws_security_group.elasticsearch.id]

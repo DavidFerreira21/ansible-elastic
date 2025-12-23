@@ -1,11 +1,17 @@
-- name: Install Java
-  dnf:
+---
+# ===================== Java =====================
+- name: Install Java 17 (Amazon Corretto)
+  package:
     name: java-17-amazon-corretto
     state: present
 
+# ===================== Elasticsearch Repo =====================
 - name: Add Elasticsearch repository
   copy:
     dest: /etc/yum.repos.d/elasticsearch.repo
+    owner: root
+    group: root
+    mode: "0644"
     content: |
       [elasticsearch]
       name=Elasticsearch repository
@@ -13,18 +19,56 @@
       gpgcheck=1
       gpgkey=https://artifacts.elastic.co/GPG-KEY-elasticsearch
       enabled=1
+  when: ansible_os_family == "RedHat"
 
+# ===================== Elasticsearch =====================
 - name: Install Elasticsearch
-  dnf:
+  package:
     name: elasticsearch
     state: present
+
+# ===================== Expect / Pexpect =====================
+# CIS AMI geralmente não vem com isso
 
 - name: Install expect
   package:
     name: expect
     state: present
+  when: elasticsearch_enable_security | bool
 
-- name: Install pexpect (required for expect module)
+- name: Install python pexpect (required for Ansible expect module)
   package:
     name: python3-pexpect
     state: present
+  when: elasticsearch_enable_security | bool
+
+# ===================== CIS HARDENING =====================
+# Somente quando flag CIS estiver habilitada
+
+- name: Disable swap (CIS requirement)
+  command: swapoff -a
+  when: elasticsearch_enable_cis | bool
+  changed_when: false
+
+- name: Ensure swap is disabled on reboot
+  replace:
+    path: /etc/fstab
+    regexp: '^([^#].*swap.*)$'
+    replace: '# \1'
+  when: elasticsearch_enable_cis | bool
+
+- name: Set vm.max_map_count (required by Elasticsearch)
+  sysctl:
+    name: vm.max_map_count
+    value: 262144
+    state: present
+    reload: yes
+  when: elasticsearch_enable_cis | bool
+
+- name: Ensure elasticsearch user limits (nofile)
+  copy:
+    dest: /etc/security/limits.d/elasticsearch.conf
+    content: |
+      elasticsearch soft nofile 65536
+      elasticsearch hard nofile 65536
+  when: elasticsearch_enable_cis | bool

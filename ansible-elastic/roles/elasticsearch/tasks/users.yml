@@ -1,30 +1,34 @@
-- name: Wait for Elasticsearch API
+---
+# ===================== Wait for Elasticsearch =====================
+- name: Wait for Elasticsearch API (authenticated)
   uri:
-    url: "http://localhost:9200"
+    url: "http://localhost:{{ elasticsearch_http_port }}"
     method: GET
     user: elastic
     password: "{{ elasticsearch_bootstrap_password }}"
     force_basic_auth: true
-    status_code: [200]
+    status_code: 200
+  register: es_up
   retries: 12
   delay: 5
-  register: result
-  until: result.status == 200
+  until: es_up.status == 200
 
+# ===================== Check application user =====================
 - name: Check if application user exists
   uri:
-    url: "http://localhost:9200/_security/user/{{ elasticsearch_app_user }}"
+    url: "http://localhost:{{ elasticsearch_http_port }}/_security/user/{{ elasticsearch_app_user }}"
     method: GET
     user: elastic
     password: "{{ elasticsearch_bootstrap_password }}"
     force_basic_auth: true
     status_code: [200, 404]
   register: app_user_check
+  changed_when: false
 
-
+# ===================== Create application user =====================
 - name: Create application user as superuser
   uri:
-    url: "http://localhost:9200/_security/user/{{ elasticsearch_app_user }}"
+    url: "http://localhost:{{ elasticsearch_http_port }}/_security/user/{{ elasticsearch_app_user }}"
     method: PUT
     user: elastic
     password: "{{ elasticsearch_bootstrap_password }}"

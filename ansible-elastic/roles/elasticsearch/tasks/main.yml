@@ -1,7 +1,19 @@
+---
+# Identificação do SO (usado por tasks abaixo)
+- name: Gather OS facts
+  setup:
+    gather_subset:
+      - "!all"
+      - "min"
+      - "distribution"
+      - "distribution_major_version"
 
+# Instalação
 - import_tasks: install.yml
+
+# Configuração
 - import_tasks: configure.yml
 
-# Só cria usuários se segurança estiver habilitada
+# Usuários e segurança
 - import_tasks: users.yml
   when: elasticsearch_enable_security | bool

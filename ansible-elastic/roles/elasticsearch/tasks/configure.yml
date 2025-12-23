@@ -1,3 +1,5 @@
+---
+# ===================== Elasticsearch config =====================
 - name: Configure elasticsearch.yml
   template:
     src: elasticsearch.yml.j2
@@ -7,12 +9,48 @@
     mode: "0640"
   notify: restart elasticsearch
 
+# ===================== systemd override (CIS) =====================
+- name: Create systemd override directory
+  file:
+    path: /etc/systemd/system/elasticsearch.service.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  when: elasticsearch_enable_cis | bool
+
+- name: Configure Elasticsearch systemd limits (CIS)
+  copy:
+    dest: /etc/systemd/system/elasticsearch.service.d/override.conf
+    content: |
+      [Service]
+      LimitMEMLOCK=infinity
+      LimitNOFILE=65536
+  when: elasticsearch_enable_cis | bool
+  notify:
+    - reload systemd
+    - restart elasticsearch
+
+# ===================== Start Elasticsearch =====================
 - name: Enable and start Elasticsearch
   systemd:
     name: elasticsearch
     enabled: true
-    state: started
+    state: restarted
+    daemon_reload: true
 
+# ===================== Wait for Elasticsearch =====================
+- name: Wait for Elasticsearch API
+  uri:
+    url: "http://localhost:{{ elasticsearch_http_port }}"
+    method: GET
+    status_code: 200
+  register: es_up
+  retries: 12
+  delay: 5
+  until: es_up.status == 200
+
+# ===================== Elastic bootstrap password =====================
 - name: Set elastic bootstrap password (only first run)
   expect:
     command: /usr/share/elasticsearch/bin/elasticsearch-reset-password -u elastic -i
@@ -20,10 +58,16 @@
       'Please confirm that you would like to continue.*': 'y'
       'Enter password for.*': "{{ elasticsearch_bootstrap_password }}"
       'Re-enter password for.*': "{{ elasticsearch_bootstrap_password }}"
+    timeout: 60
   args:
     creates: /etc/elasticsearch/.elastic_password_set
+  when: elasticsearch_enable_security | bool
 
 - name: Mark elastic password as set
   file:
     path: /etc/elasticsearch/.elastic_password_set
     state: touch
+    owner: root
+    group: root
+    mode: "0600"
+  when: elasticsearch_enable_security | bool
