@@ -1,7 +1,8 @@
 elasticsearch_version: "8.12.0"
 
 elasticsearch_cluster_name: "asapflow-es"
-elasticsearch_node_name: "{{ inventory_hostname }}"
+elasticsearch_node_name: "{{ ansible_hostname }}"
+elasticsearch_discovery_type: single-node
 
 elasticsearch_data_path: /var/lib/elasticsearch
 elasticsearch_logs_path: /var/log/elasticsearch

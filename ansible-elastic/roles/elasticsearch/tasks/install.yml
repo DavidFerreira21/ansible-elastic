@@ -63,7 +63,6 @@
     value: 262144
     state: present
     reload: yes
-  when: elasticsearch_enable_cis | bool
 
 - name: Ensure elasticsearch user limits (nofile)
   copy:
