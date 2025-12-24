@@ -17,3 +17,7 @@
 # Usuários e segurança
 - import_tasks: users.yml
   when: elasticsearch_enable_security | bool
+
+  # backup e snapshot
+- import_tasks: backup.yml
+  when: backup | bool

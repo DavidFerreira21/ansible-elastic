@@ -15,3 +15,17 @@ elasticsearch_enable_cis: true
 elasticsearch_enable_security: true
 elasticsearch_app_user: asapflow_app
 # As senhas serão solicitadas via prompt no playbook.yml
+
+
+#backup e snapshot
+backup: false   # <- flag principal
+
+elasticsearch_snapshot_repo: s3_backup
+elasticsearch_snapshot_bucket: meu-bucket-backup-es
+elasticsearch_snapshot_region: us-east-1
+elasticsearch_snapshot_base_path: elasticsearch/snapshots
+
+elasticsearch_snapshot_schedule: "0 0 2 * * ?"   # 02:00
+elasticsearch_snapshot_retention_days: 30
+elasticsearch_snapshot_min_count: 7
+elasticsearch_snapshot_max_count: 30

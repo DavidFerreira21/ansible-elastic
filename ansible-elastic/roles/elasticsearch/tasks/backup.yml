@@ -1,0 +1,53 @@
+# ===================== Snapshot Repository =====================
+- name: Create S3 snapshot repository
+  uri:
+    url: "http://localhost:{{ elasticsearch_http_port }}/_snapshot/{{ elasticsearch_snapshot_repo }}"
+    method: PUT
+    user: elastic
+    password: "{{ elasticsearch_bootstrap_password }}"
+    force_basic_auth: true
+    body_format: json
+    body:
+      type: s3
+      settings:
+        bucket: "{{ elasticsearch_snapshot_bucket }}"
+        region: "{{ elasticsearch_snapshot_region }}"
+        base_path: "{{ elasticsearch_snapshot_base_path }}"
+        compress: true
+    status_code: [200, 201]
+  when: backup | bool
+
+  # ===================== Snapshot Lifecycle =====================
+- name: Create daily snapshot lifecycle policy
+  uri:
+    url: "http://localhost:{{ elasticsearch_http_port }}/_slm/policy/daily-snapshot"
+    method: PUT
+    user: elastic
+    password: "{{ elasticsearch_bootstrap_password }}"
+    force_basic_auth: true
+    body_format: json
+    body:
+      schedule: "{{ elasticsearch_snapshot_schedule }}"
+      name: "<daily-snap-{now/d}>"
+      repository: "{{ elasticsearch_snapshot_repo }}"
+      config:
+        indices: "*"
+        ignore_unavailable: true
+        include_global_state: false
+      retention:
+        expire_after: "{{ elasticsearch_snapshot_retention_days }}d"
+        min_count: "{{ elasticsearch_snapshot_min_count }}"
+        max_count: "{{ elasticsearch_snapshot_max_count }}"
+    status_code: [200, 201]
+  when: backup | bool
+
+
+- name: Validate snapshot lifecycle policy
+  uri:
+    url: "http://localhost:{{ elasticsearch_http_port }}/_slm/policy/daily-snapshot"
+    method: GET
+    user: elastic
+    password: "{{ elasticsearch_bootstrap_password }}"
+    force_basic_auth: true
+    status_code: 200
+  when: backup | bool
